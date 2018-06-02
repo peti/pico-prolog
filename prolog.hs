@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
@@ -6,12 +7,17 @@
 
 module Main where
 
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ( (<>) )
+#endif
+
 import Control.Lens
 import Control.Monad
 import Data.Char
 import Data.Data
 import Data.Map as Map
 import Data.Maybe
+import Data.Semigroup ( Semigroup )
 import Data.Set.Lens as Set
 import Distribution.Compat.ReadP as ReadP
 import Distribution.Text
@@ -56,7 +62,7 @@ token p = skipSpaces >> p
 -- * Substitutions
 
 newtype Substitution = Substitution (Map VariableName Term)
-  deriving (Eq, Show, Monoid)
+  deriving (Eq, Show, Semigroup, Monoid)
 
 instance Text Substitution where
   disp (Substitution s) = braces (fsep (punctuate comma [ text vn <> PP.char '/' <> disp t | (vn, t) <- Map.toList s ]))
@@ -119,7 +125,7 @@ instance Text Rule where
              return (Rule lhs rhs)
 
 splits :: [a] -> [([a], [a])]
-splits as = [ splitAt i as | i <- [0 .. length as - 1] ]
+splits as = [ Prelude.splitAt i as | i <- [0 .. length as - 1] ]
 
 prove :: [Rule] -> [Term] -> [Substitution]
 prove rules' terms' = prove' terms' mempty

@@ -25,3 +25,5 @@ executable pico-prolog
                       , containers
                       , lens
                       , pretty
+  if (impl(ghc < 8))
+    build-depends:      semigroups
